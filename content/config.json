@@ -1,0 +1,9 @@
+{
+  "sidebar": [],
+  "contactSupport": {
+    "title": "Was this helpful?",
+    "description": "Reach out to support if you need assistance or are stuck.",
+    "buttonText": "Contact Support",
+    "buttonLink": "mailto:support@example.com"
+  }
+}
