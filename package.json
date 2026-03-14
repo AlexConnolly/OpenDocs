@@ -2,6 +2,17 @@
   "name": "create-opendocs",
   "version": "0.1.0",
   "description": "Scaffold a new OpenDocs documentation site.",
+  "author": "Alex Connolly",
+  "license": "MIT",
+  "preferGlobal": true,
+  "homepage": "https://github.com/AlexConnolly/OpenDocs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexConnolly/OpenDocs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AlexConnolly/OpenDocs/issues"
+  },
   "bin": {
     "create-opendocs": "./src/create-opendocs.js"
   },
@@ -14,6 +25,9 @@
     "template:install": "npm --prefix template install",
     "template:lint": "npm --prefix template run lint",
     "template:build": "npm --prefix template run build"
+  },
+  "engines": {
+    "node": ">=18.17"
   },
   "keywords": [
     "docs",

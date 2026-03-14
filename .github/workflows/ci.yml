@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: template/package-lock.json
+
+      - name: Install template dependencies
+        run: npm install --prefix template
+
+      - name: Lint template
+        run: npm run template:lint
+
+      - name: Build template
+        run: npm run template:build
+
+      - name: Pack CLI
+        shell: bash
+        run: |
+          npm pack
+
+      - name: Scaffold smoke project from packed tarball
+        shell: bash
+        run: |
+          TARBALL="$(ls create-opendocs-*.tgz | head -n 1)"
+          mkdir -p tmp
+          npx --yes --package "file:${PWD}/${TARBALL}" create-opendocs tmp/smoke-docs --site-name "Smoke Docs" --support-email smoke@example.com --site-url https://docs.smoke.test --no-install
+
+      - name: Install smoke project dependencies
+        run: npm install --prefix tmp/smoke-docs
+
+      - name: Lint smoke project
+        run: npm --prefix tmp/smoke-docs run lint
+
+      - name: Build smoke project
+        run: npm --prefix tmp/smoke-docs run build
