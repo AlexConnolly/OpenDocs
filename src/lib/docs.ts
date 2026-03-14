@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { cache } from 'react';
 
-// Using a standard Next.js path from process.cwd()
 const DOCS_DIRECTORY = path.join(process.cwd(), 'content');
 
 export type DocItem = {
@@ -36,7 +36,15 @@ type DocsConfig = {
     contactSupport?: ConfigContactSupport;
 };
 
-export function getConfig(): DocsConfig {
+function normalizeRelativePath(filePath: string): string {
+    return path.relative(DOCS_DIRECTORY, filePath).split(path.sep).join('/');
+}
+
+function normalizeSlugParams(slugParams: string[] = []): string[] {
+    return slugParams.filter(Boolean);
+}
+
+const readConfig = cache((): DocsConfig => {
     const configPath = path.join(DOCS_DIRECTORY, 'config.json');
     if (fs.existsSync(configPath)) {
         try {
@@ -46,78 +54,42 @@ export function getConfig(): DocsConfig {
         }
     }
     return { sidebar: [] };
-}
+});
 
-// Ensure the docs directory exists
-function ensureDocsDirectory() {
-    if (!fs.existsSync(DOCS_DIRECTORY)) {
-        fs.mkdirSync(DOCS_DIRECTORY, { recursive: true });
+function getAllMarkdownFiles(dirPath: string): string[] {
+    if (!fs.existsSync(dirPath)) return [];
 
-        fs.writeFileSync(
-            path.join(DOCS_DIRECTORY, 'index.md'),
-            `# Welcome to OpenDocs\n\nOpenDocs is a flexible documentation starter for products, teams, and internal tools.\n\n### Start here\n\n- Add your homepage content\n- Create sections in the sidebar\n- Publish your documentation\n`
-        );
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    const markdownFiles: string[] = [];
 
-        const featuresPath = path.join(DOCS_DIRECTORY, 'features');
-        fs.mkdirSync(featuresPath);
-        fs.writeFileSync(
-            path.join(featuresPath, 'analytics.md'),
-            `# Example Page\n\nUse this page as a starting point for your own documentation.\n`
-        );
-
-        const initialConfig: DocsConfig = {
-            homepage: "index.md",
-            sidebar: [
-                {
-                    title: "Welcome",
-                    items: ["index.md"]
-                },
-                {
-                    title: "Features",
-                    items: ["features/analytics.md"]
-                }
-            ],
-            contactSupport: {
-                title: "Was this helpful?",
-                description: "Reach out to support if you need assistance or are stuck.",
-                buttonText: "Contact Support",
-                buttonLink: "mailto:support@example.com"
-            }
-        };
-        fs.writeFileSync(
-            path.join(DOCS_DIRECTORY, 'config.json'),
-            JSON.stringify(initialConfig, null, 2)
-        );
-    }
-}
-
-// Recursively find all markdown files
-function getAllMarkdownFiles(dirPath: string, arrayOfFiles: string[] = []): string[] {
-    if (!fs.existsSync(dirPath)) return arrayOfFiles;
-
-    const files = fs.readdirSync(dirPath);
-
-    files.forEach(function (file) {
-        if (fs.statSync(dirPath + "/" + file).isDirectory()) {
-            arrayOfFiles = getAllMarkdownFiles(dirPath + "/" + file, arrayOfFiles);
-        } else {
-            if (file.endsWith('.md') || file.endsWith('.mdx')) {
-                arrayOfFiles.push(path.join(dirPath, file));
-            }
+    for (const entry of entries) {
+        const entryPath = path.join(dirPath, entry.name);
+        if (entry.isDirectory()) {
+            markdownFiles.push(...getAllMarkdownFiles(entryPath));
+            continue;
         }
-    });
 
-    return arrayOfFiles;
+        if (entry.name.endsWith('.md') || entry.name.endsWith('.mdx')) {
+            markdownFiles.push(entryPath);
+        }
+    }
+
+    return markdownFiles;
 }
 
-export function getAllDocsSlugs(): string[][] {
-    ensureDocsDirectory();
-    const config = getConfig();
-    const files = getAllMarkdownFiles(DOCS_DIRECTORY);
+const getMarkdownFiles = cache(() => getAllMarkdownFiles(DOCS_DIRECTORY));
+
+export function getConfig(): DocsConfig {
+    return readConfig();
+}
+
+const getAllDocsSlugsCached = cache((): string[][] => {
+    const config = readConfig();
+    const files = getMarkdownFiles();
     const slugs: string[][] = [];
 
     files.forEach(file => {
-        const relativePath = file.replace(DOCS_DIRECTORY + '/', '');
+        const relativePath = normalizeRelativePath(file);
 
         if (config.homepage && relativePath === config.homepage) {
             slugs.push([]);
@@ -137,11 +109,15 @@ export function getAllDocsSlugs(): string[][] {
 
     // Deduplicate
     return Array.from(new Set(slugs.map(s => JSON.stringify(s)))).map(s => JSON.parse(s));
+});
+
+export function getAllDocsSlugs(): string[][] {
+    return getAllDocsSlugsCached();
 }
 
-export function getDocBySlug(slugParams: string[] = []): DocItem | null {
-    ensureDocsDirectory();
-    const config = getConfig();
+const getDocBySlugCached = cache((slugKey: string): DocItem | null => {
+    const slugParams = slugKey ? slugKey.split('/') : [];
+    const config = readConfig();
 
     const possiblePaths = [
         path.join(DOCS_DIRECTORY, ...slugParams) + '.md',
@@ -185,11 +161,14 @@ export function getDocBySlug(slugParams: string[] = []): DocItem | null {
         title: docTitle,
         content,
     };
+});
+
+export function getDocBySlug(slugParams: string[] = []): DocItem | null {
+    return getDocBySlugCached(normalizeSlugParams(slugParams).join('/'));
 }
 
-export function buildSidebarTree(): DocTree {
-    ensureDocsDirectory();
-    const config = getConfig();
+const buildSidebarTreeCached = cache((): DocTree => {
+    const config = readConfig();
     const root: DocTree = { title: 'Root', children: [] };
     const usedFiles = new Set<string>();
 
@@ -228,11 +207,11 @@ export function buildSidebarTree(): DocTree {
         }
     }
 
-    const allFiles = getAllMarkdownFiles(DOCS_DIRECTORY);
+    const allFiles = getMarkdownFiles();
     allFiles.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
     for (const file of allFiles) {
-        const relativePath = file.replace(DOCS_DIRECTORY + '/', '');
+        const relativePath = normalizeRelativePath(file);
         const withoutExt = relativePath.replace(/\.mdx?$/, '');
 
         // Make sure we haven't already mapped this file AND it's not the homepage
@@ -257,4 +236,40 @@ export function buildSidebarTree(): DocTree {
     }
 
     return root;
+});
+
+export function buildSidebarTree(): DocTree {
+    return buildSidebarTreeCached();
+}
+
+export type FlatDocLink = {
+    title: string;
+    slug: string;
+    categoryTitle: string;
+};
+
+const getFlatDocLinksCached = cache((): FlatDocLink[] => {
+    const tree = buildSidebarTreeCached();
+    const links: FlatDocLink[] = [];
+
+    for (const node of tree.children) {
+        if (node.children && node.children.length > 0) {
+            for (const child of node.children) {
+                if (child.slug) {
+                    links.push({ title: child.title, slug: child.slug, categoryTitle: node.title });
+                }
+            }
+            continue;
+        }
+
+        if (node.slug) {
+            links.push({ title: node.title, slug: node.slug, categoryTitle: '' });
+        }
+    }
+
+    return links;
+});
+
+export function getFlatDocLinks(): FlatDocLink[] {
+    return getFlatDocLinksCached();
 }

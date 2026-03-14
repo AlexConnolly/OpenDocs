@@ -1,4 +1,4 @@
-import { getDocBySlug, getAllDocsSlugs, getConfig, buildSidebarTree } from "@/lib/docs";
+import { getDocBySlug, getAllDocsSlugs, getConfig, getFlatDocLinks } from "@/lib/docs";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { Metadata } from "next";
@@ -42,21 +42,7 @@ export default async function DocPage({ params }: { params: { slug?: string[] } 
 
     const currSlugStr = isRoot ? '/' : '/' + (params.slug || []).join('/');
 
-    // Find next doc
-    const tree = buildSidebarTree();
-    const flatPages: { title: string, slug: string, categoryTitle: string }[] = [];
-    for (const node of tree.children) {
-        if (node.children && node.children.length > 0) {
-            for (const child of node.children) {
-                if (child.slug) {
-                    flatPages.push({ title: child.title, slug: child.slug, categoryTitle: node.title });
-                }
-            }
-        } else if (node.slug) {
-            flatPages.push({ title: node.title, slug: node.slug, categoryTitle: '' });
-        }
-    }
-
+    const flatPages = getFlatDocLinks();
     const currentIndex = flatPages.findIndex(p => p.slug === currSlugStr);
     const nextDoc = currentIndex !== -1 && currentIndex < flatPages.length - 1 ? flatPages[currentIndex + 1] : null;
 
