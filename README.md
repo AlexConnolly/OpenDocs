@@ -53,6 +53,48 @@ After scaffolding, the generated app is a normal Next.js project. The main files
 - `src/app/`: app shell and page routes
 - `src/lib/docs.ts`: docs loading and sidebar generation
 
+## Editing Config After Creation
+
+After the project is created, you can update the docs structure in `content/config.json`.
+
+Example:
+
+```json
+{
+  "homepage": "index.md",
+  "sidebar": [
+    {
+      "title": "Getting Started",
+      "items": [
+        "index.md",
+        "guides/getting-started.md"
+      ]
+    },
+    {
+      "title": "Reference",
+      "items": [
+        "api/authentication.md",
+        "api/webhooks.mdx"
+      ]
+    }
+  ],
+  "contactSupport": {
+    "title": "Need help?",
+    "description": "Contact the docs team if anything is unclear.",
+    "buttonText": "Email us",
+    "buttonLink": "mailto:docs@example.com"
+  }
+}
+```
+
+What you can change:
+
+- `homepage`: which file renders at `/`
+- `sidebar`: the navigation groups and page order
+- `contactSupport`: the footer title, text, button label, and link
+
+To add a page to the nav, create a matching file in `content/` and then add its path to `sidebar.items`.
+
 ## Repository Layout
 
 - `src/create-opendocs.js`: the CLI entrypoint
