@@ -1,0 +1,18 @@
+{
+  "homepage": "index.md",
+  "sidebar": [
+    {
+      "title": "Getting Started",
+      "items": [
+        "index.md",
+        "guides/getting-started.md"
+      ]
+    }
+  ],
+  "contactSupport": {
+    "title": "Was this helpful?",
+    "description": "Reach out to support if you need assistance or are stuck.",
+    "buttonText": "Contact Support",
+    "buttonLink": "mailto:__SUPPORT_EMAIL__"
+  }
+}

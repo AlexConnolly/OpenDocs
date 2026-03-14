@@ -62,7 +62,7 @@ export default function Sidebar({ tree }: { tree: SidebarNode }) {
                     <div className="w-6 h-6 bg-white rounded-md flex items-center justify-center">
                         <Book className="w-4 h-4 text-black" />
                     </div>
-                    <span className="text-white font-bold text-lg tracking-tight">OpenDocs</span>
+                    <span className="text-white font-bold text-lg tracking-tight">__SITE_NAME__</span>
                 </div>
                 <button onClick={() => setIsOpen(!isOpen)} className="text-zinc-400 hover:text-white">
                     {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -88,7 +88,7 @@ export default function Sidebar({ tree }: { tree: SidebarNode }) {
                             <Book className="w-5 h-5 text-black" />
                         </div>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
-                            OpenDocs
+                            __SITE_NAME__
                         </span>
                     </Link>
                     <div className="mt-8">

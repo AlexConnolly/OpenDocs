@@ -3,7 +3,7 @@ import { getAllDocsSlugs } from '@/lib/docs';
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const slugs = getAllDocsSlugs();
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || '__SITE_URL__';
 
     return slugs.map((slug) => {
         const urlPath = slug.length > 0 ? `/${slug.join('/')}` : '';

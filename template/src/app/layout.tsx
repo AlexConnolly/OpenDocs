@@ -6,8 +6,8 @@ import { buildSidebarTree } from "@/lib/docs";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "OpenDocs",
-  description: "A customizable documentation starter.",
+  title: "__SITE_NAME__",
+  description: "__SITE_DESCRIPTION__",
 };
 
 export default function RootLayout({

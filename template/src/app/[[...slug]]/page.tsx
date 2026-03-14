@@ -18,11 +18,11 @@ export async function generateMetadata({ params }: { params: { slug?: string[] }
     if (!doc) {
         return {
             title: params.slug && params.slug.length > 0 ? "Not Found" : "Setup Required",
-            description: "A flexible documentation starter for your product or team."
+            description: "__SITE_DESCRIPTION__"
         };
     }
     return {
-        title: `${doc.title} - OpenDocs`,
+        title: `${doc.title} - __SITE_NAME__`,
         description: `Read documentation for ${doc.title}.`,
     };
 }
