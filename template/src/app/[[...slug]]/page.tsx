@@ -5,6 +5,32 @@ import { Metadata } from "next";
 import { ChevronRight, Home, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import MermaidDiagram from "@/components/MermaidDiagram";
+
+function getMermaidChart(children: React.ReactNode): string | null {
+    if (!React.isValidElement(children)) {
+        return null;
+    }
+
+    const childProps = children.props as {
+        className?: string;
+        children?: React.ReactNode;
+    };
+
+    if (!childProps.className?.includes("language-mermaid")) {
+        return null;
+    }
+
+    if (typeof childProps.children === "string") {
+        return childProps.children.trim();
+    }
+
+    if (Array.isArray(childProps.children)) {
+        return childProps.children.join("").trim();
+    }
+
+    return null;
+}
 
 export async function generateStaticParams() {
     const slugs = getAllDocsSlugs();
@@ -58,7 +84,14 @@ export default async function DocPage({ params }: { params: { slug?: string[] } 
         a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a className="text-white font-medium hover:text-blue-400 underline decoration-zinc-700 hover:decoration-blue-400/50 transition-all underline-offset-4" {...props} />,
         blockquote: (props: React.QuoteHTMLAttributes<HTMLQuoteElement>) => <blockquote className="border-l-4 border-white/20 pl-6 italic text-zinc-300 my-8 bg-zinc-900/40 py-4 pr-6 rounded-r-2xl shadow-sm" {...props} />,
         code: (props: React.HTMLAttributes<HTMLElement>) => <code className="bg-zinc-900 border border-zinc-800/80 rounded-md px-1.5 py-0.5 font-mono text-[0.85em] text-zinc-200 shadow-sm" {...props} />,
-        pre: (props: React.HTMLAttributes<HTMLPreElement>) => <pre className="bg-[#09090b] border border-zinc-800/80 rounded-2xl p-5 overflow-x-auto my-8 shadow-2xl custom-scrollbar" {...props} />,
+        pre: (props: React.HTMLAttributes<HTMLPreElement>) => {
+            const mermaidChart = getMermaidChart(props.children);
+            if (mermaidChart) {
+                return <MermaidDiagram chart={mermaidChart} />;
+            }
+
+            return <pre className="bg-[#09090b] border border-zinc-800/80 rounded-2xl p-5 overflow-x-auto my-8 shadow-2xl custom-scrollbar" {...props} />;
+        },
         table: (props: React.TableHTMLAttributes<HTMLTableElement>) => <div className="overflow-x-auto my-8 border border-zinc-800/80 rounded-2xl shadow-sm"><table className="w-full text-left text-sm" {...props} /></div>,
         th: (props: React.ThHTMLAttributes<HTMLTableCellElement>) => <th className="border-b border-zinc-800 bg-zinc-900/60 p-4 font-medium text-zinc-200 text-sm tracking-wide" {...props} />,
         td: (props: React.TdHTMLAttributes<HTMLTableCellElement>) => <td className="p-4 border-b border-zinc-800/40 text-zinc-400" {...props} />,

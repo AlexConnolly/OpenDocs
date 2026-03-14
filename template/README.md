@@ -29,6 +29,7 @@ $env:NEXT_PUBLIC_SITE_URL="__SITE_URL__"
 - Loads docs from the `content/` folder
 - Builds the sidebar from `content/config.json`
 - Renders Markdown and MDX pages automatically from file paths
+- Supports Mermaid diagrams via fenced `mermaid` code blocks
 - Shows an optional footer CTA from config
 - Generates a sitemap from your docs pages
 

@@ -30,6 +30,7 @@ The generated project is a Next.js docs app with:
 - File-based content in `content/`
 - Sidebar navigation configured in `content/config.json`
 - Markdown and MDX page support
+- Mermaid diagram support with fenced `mermaid` blocks
 - A footer CTA block driven by config
 - Static page generation and sitemap support
 
